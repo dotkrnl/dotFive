@@ -5,7 +5,7 @@
 #include <QMap>
 #include <QQueue>
 #include <QVector>
-#include <QThreadPool>
+#include <QThread>
 #include <QSignalMapper>
 
 #include <algorithm>
@@ -37,6 +37,7 @@ protected slots:
 
 protected:
     QMap<int, FiveGameTask *> m_games;
+    QVector<QThread *> m_thread_pool;
     QQueue<int> m_token_pool;
     QSignalMapper *m_mapper;
 

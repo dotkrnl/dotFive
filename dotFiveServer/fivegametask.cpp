@@ -15,13 +15,19 @@ FiveGameTask::~FiveGameTask(void)
     qDebug() << "five game task deleted";
 }
 
-void FiveGameTask::run()
+int randomChoose(int size)
+{
+    return rand() % size;
+}
+
+void FiveGameTask::start(QVector<QThread *> *thread_pool)
 {
     qDebug() << "five game task started";
 
-    m_game = new FiveGame();
-    m_event = new QEventLoop();
+    int chose = randomChoose(thread_pool->size());
 
+    m_game = new FiveGame();
+    m_game->moveToThread((*thread_pool)[chose]);
 
     // transfer deletion to m_game
     connect(this,   SIGNAL(shouldAddConnection(FiveConnection*)),
@@ -31,15 +37,6 @@ void FiveGameTask::run()
             this,   SLOT(gameShouldTerminate()));
 
     addConnection(m_creator);
-
-    m_event->exec();
-
-    emit gameTerminated();
-
-    delete m_event;
-    delete m_game;
-
-    qDebug() << "five game task to terminate";
 }
 
 // transfer deletion to FiveGameTask
@@ -51,5 +48,8 @@ void FiveGameTask::addConnection(FiveConnection *con)
 
 void FiveGameTask::gameShouldTerminate(void)
 {
-    m_event->exit(0);
+    qDebug() << "five game task to terminate";
+
+    emit gameTerminated();
+    m_game->deleteLater();
 }

@@ -13,6 +13,12 @@ FiveGameManager::FiveGameManager(QObject *parent)
     for (int i = 0; i < TOKEN_COUNT; i++)
         m_token_pool.enqueue(tokens[i]);
 
+    m_thread_pool.resize(QThread::idealThreadCount());
+    for (int i = 0; i < m_thread_pool.size(); i++) {
+        m_thread_pool[i] = new QThread();
+        m_thread_pool[i]->start();
+    }
+
     connect(m_mapper, SIGNAL(mapped(int)),
             this,     SLOT(gameDeleted(int)));
 }
@@ -46,9 +52,9 @@ void FiveGameManager::toCreateToken(void)
     int t = m_token_pool.dequeue();
     qDebug() << "token" << t << "created";
 
-    // transfer deletion to new_game
+    // transfer client deletion to new_game
     FiveGameTask *new_game = new FiveGameTask(client);
-    new_game->setAutoDelete(false); // delete in gameDeleted
+    // FiveGameTask delete in gameDeleted
 
     m_games[t] = new_game;
     client->toToken(QString::number(t));
@@ -57,7 +63,7 @@ void FiveGameManager::toCreateToken(void)
     connect(new_game, SIGNAL(gameTerminated()),
             m_mapper, SLOT(map()));
 
-    QThreadPool::globalInstance()->start(new_game);
+    new_game->start(&m_thread_pool);
 }
 
 void FiveGameManager::toToken(QString token)

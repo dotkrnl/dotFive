@@ -5,10 +5,11 @@
 #include <QRunnable>
 #include <QEventLoop>
 
+#include <cmath>
+
 #include "fivegame.h"
 
-class FiveGameTask : public QObject,
-                     public QRunnable
+class FiveGameTask : public QObject
 {
     Q_OBJECT
 
@@ -16,12 +17,11 @@ public:
     FiveGameTask(FiveConnection *creator);
     ~FiveGameTask(void);
 
-    void run(void);
+    void start(QVector<QThread *> *thread_pool);
     void addConnection(FiveConnection *con);
 
     FiveGame *m_game;
     FiveConnection *m_creator;
-    QEventLoop *m_event;
 
 signals:
     void gameTerminated(void);
