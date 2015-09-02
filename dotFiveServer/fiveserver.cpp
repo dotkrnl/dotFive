@@ -5,10 +5,12 @@
 FiveServer::FiveServer(const FiveServerOptions *options,
                        QObject *parent)
     : QTcpServer(parent),
-      m_options(options)
+      m_options(options),
+      m_game(new FiveGameTask())
 {
     connect(this, SIGNAL(newConnection()),
             this, SLOT(acceptConnection()));
+    QThreadPool::globalInstance()->start(m_game);
 }
 
 bool FiveServer::startServer(void)
@@ -55,9 +57,8 @@ void FiveServer::acceptConnection(void)
     }
 
     FiveConnection *con = new FiveConnection(
-                nextPendingConnection(),
-                heartbeat, timeout, this);
+        new LineSocket(nextPendingConnection(),
+                heartbeat, timeout), this);
+    m_game->addConnection(con);
 
-    connect(con, SIGNAL(disconnected()),
-            con, SLOT(deleteLater()));
 }

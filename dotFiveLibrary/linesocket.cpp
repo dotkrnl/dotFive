@@ -1,18 +1,18 @@
-#include "lineconnection.h"
+#include "linesocket.h"
 
 #include <QDebug>
 
-LineConnection::LineConnection(QTcpSocket *socket,
-                               int heartbeat, int timeout,
-                               QObject *parent)
+LineSocket::LineSocket(QTcpSocket *socket,
+                       int heartbeat, int timeout,
+                       QObject *parent)
     : QObject(parent),
       m_socket(socket),
       m_heartbeat_timer(new QTimer(this)),
       m_timeout_timer(new QTimer(this))
 {
     m_id = m_socket->socketDescriptor();
-    qDebug() << m_id << " object created";
     qInfo()  << m_id << " connected";
+    qDebug() << m_id << " line socket created";
 
     if (heartbeat) {
         m_heartbeat_timer->setInterval(heartbeat);
@@ -37,34 +37,41 @@ LineConnection::LineConnection(QTcpSocket *socket,
             this, SIGNAL(disconnected()));
 }
 
-LineConnection::~LineConnection(void)
+LineSocket::~LineSocket(void)
 {
-    qDebug() << m_id << " object deleted";
+    qDebug() << m_id << " line socket deleted";
 }
 
-void LineConnection::sendCommand(QString command, QStringList argv)
+void LineSocket::sendCommand(QString command,
+                             QStringList argv)
 {
-    QString data = command % " " % argv.join(" ") % "\r\n";
+    QString data;
+    if (!argv.size())
+        data = command + "\r\n";
+    else
+        data = command % " " % argv.join(" ") % "\r\n";
+
     qDebug() << m_id << " to which send:" << data;
 
     m_socket->write(data.toUtf8());
 }
 
-void LineConnection::disconnect(void)
+void LineSocket::disconnect(void)
 {
     m_timeout_timer->stop();
     m_socket->close();
 }
 
-void LineConnection::readyRead()
+void LineSocket::readyRead()
 {
     m_timeout_timer->start();
 
     if (!m_socket->canReadLine()) return;
-    emitLine(QString::fromUtf8(m_socket->readLine()));
+
+    processLine(QString::fromUtf8(m_socket->readLine()));
 }
 
-void LineConnection::emitLine(QString line)
+void LineSocket::processLine(QString line)
 {
     QStringList got = line.trimmed().split(" ");
 
@@ -76,25 +83,24 @@ void LineConnection::emitLine(QString line)
     } else if (command == "HEARTBEAT") {
         qInfo() << m_id << " from which got heartbeat";
     } else {
-        qDebug() << m_id << " from which got:" << command;
-        if (got.size()) qDebug() << m_id << " argv:" << got;
+        qDebug() << m_id << " from which got:" << line;
         emit receivedCommand(command, got);
     }
 }
 
-void LineConnection::heartbeatTimeout()
+void LineSocket::heartbeatTimeout()
 {
     sendCommand("HEARTBEAT");
 }
 
-void LineConnection::connectionTimeout()
+void LineSocket::connectionTimeout()
 {
     qInfo() << m_id << " timeout";
 
     disconnect();
 }
 
-void LineConnection::disconnectedEvent()
+void LineSocket::disconnectedEvent()
 {
     qInfo() << m_id << " disconnected.";
 

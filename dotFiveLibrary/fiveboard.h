@@ -24,11 +24,13 @@ public:
     bool isInRange(QPoint loc);
 
 signals:
+    void cleared(void);
     void changed(QPoint loc, bool exist, bool is_white);
     void won(bool is_white);
 
 public slots:
     void toChange(QPoint loc, bool exist, bool is_white);
+    void toClear(void);
 
 private slots:
     void checkWon(QPoint loc);

@@ -5,9 +5,7 @@
 FiveBoard::FiveBoard(QObject *parent)
     : QObject(parent)
 {
-    m_board.resize(five::BOARD_SIZE);
-    for (int i = 0; i < five::BOARD_SIZE; i++)
-        m_board[i].resize(five::BOARD_SIZE);
+    toClear();
 }
 
 bool FiveBoard::isStatus(QPoint loc, bool exist, bool is_white)
@@ -40,6 +38,15 @@ void FiveBoard::toChange(QPoint loc, bool exist, bool is_white)
     emit changed(loc, exist, is_white);
 
     checkWon(loc);
+}
+
+void FiveBoard::toClear(void)
+{
+    m_board.resize(0);
+    m_board.resize(five::BOARD_SIZE);
+    for (int i = 0; i < five::BOARD_SIZE; i++)
+        m_board[i].resize(five::BOARD_SIZE);
+    emit cleared();
 }
 
 void FiveBoard::checkWon(QPoint loc)

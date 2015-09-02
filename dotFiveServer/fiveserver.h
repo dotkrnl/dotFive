@@ -3,9 +3,12 @@
 
 #include <QObject>
 #include <QTcpServer>
+#include <QThreadPool>
 
 #include "fiveserveroptions.h"
 
+#include "linesocket.h"
+#include "fivegametask.h"
 #include "fiveconnection.h"
 #include "fiveconstants.h"
 
@@ -21,6 +24,7 @@ public:
 
 protected:
     const FiveServerOptions *m_options;
+    FiveGameTask *m_game; // TODO: mutiple games
 
 signals:
     void serverStopped(void);

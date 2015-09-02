@@ -13,16 +13,16 @@ TEMPLATE = lib
 CONFIG += staticlib
 
 SOURCES += \
-    lineconnection.cpp \
     fiveconnection.cpp \
     fiveboard.cpp \
-    fiveconstants.cpp
+    fiveconstants.cpp \
+    linesocket.cpp
 
 HEADERS += \
-    lineconnection.h \
     fiveconnection.h \
     fiveboard.h \
-    fiveconstants.h
+    fiveconstants.h \
+    linesocket.h
 unix {
     target.path = /usr/lib
     INSTALLS += target

@@ -9,11 +9,15 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     fiveserver.cpp \
-    fiveserveroptions.cpp
+    fiveserveroptions.cpp \
+    fivegame.cpp \
+    fivegametask.cpp
 
 HEADERS += \
     fiveserver.h \
-    fiveserveroptions.h
+    fiveserveroptions.h \
+    fivegame.h \
+    fivegametask.h
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../dotFiveLibrary/release/ -ldotFiveLibrary
