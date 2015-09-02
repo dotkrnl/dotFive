@@ -6,11 +6,10 @@ FiveServer::FiveServer(const FiveServerOptions *options,
                        QObject *parent)
     : QTcpServer(parent),
       m_options(options),
-      m_game(new FiveGameTask())
+      m_manager(new FiveGameManager(this))
 {
     connect(this, SIGNAL(newConnection()),
             this, SLOT(acceptConnection()));
-    QThreadPool::globalInstance()->start(m_game);
 }
 
 bool FiveServer::startServer(void)
@@ -56,9 +55,8 @@ void FiveServer::acceptConnection(void)
         qFatal("Bad timeout or heart");
     }
 
-    FiveConnection *con = new FiveConnection(
-        new LineSocket(nextPendingConnection(),
-                heartbeat, timeout), this);
-    m_game->addConnection(con);
-
+    m_manager->addConnection(new FiveConnection(
+            nextPendingConnection(),
+            heartbeat, timeout, m_manager));
+    // transfer deletion to m_manager
 }

@@ -8,7 +8,7 @@
 #include "fiveserveroptions.h"
 
 #include "linesocket.h"
-#include "fivegametask.h"
+#include "fivegamemanager.h"
 #include "fiveconnection.h"
 #include "fiveconstants.h"
 
@@ -24,7 +24,7 @@ public:
 
 protected:
     const FiveServerOptions *m_options;
-    FiveGameTask *m_game; // TODO: mutiple games
+    FiveGameManager *m_manager;
 
 signals:
     void serverStopped(void);

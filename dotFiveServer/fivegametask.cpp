@@ -2,8 +2,10 @@
 
 #include <QDebug>
 
-FiveGameTask::FiveGameTask(void)
-    : QObject()
+// transfer deletion to FiveGameTask
+FiveGameTask::FiveGameTask(FiveConnection *creator)
+    : QObject(),
+      m_creator(creator)
 {
     qDebug() << "five game task created";
 }
@@ -20,24 +22,31 @@ void FiveGameTask::run()
     m_game = new FiveGame();
     m_event = new QEventLoop();
 
-    connect(this,   SIGNAL(shoudAddConnection(FiveConnection*)),
+
+    // transfer deletion to m_game
+    connect(this,   SIGNAL(shouldAddConnection(FiveConnection*)),
             m_game, SLOT(addConnection(FiveConnection*)));
 
     connect(m_game, SIGNAL(gameShouldTerminate()),
-            this,   SIGNAL(gameTerminated()));
-    connect(m_game, SIGNAL(gameShouldTerminate()),
             this,   SLOT(gameShouldTerminate()));
 
+    addConnection(m_creator);
+
     m_event->exec();
+
+    emit gameTerminated();
+
     delete m_event;
     delete m_game;
 
     qDebug() << "five game task to terminate";
 }
 
+// transfer deletion to FiveGameTask
 void FiveGameTask::addConnection(FiveConnection *con)
 {
-    emit shoudAddConnection(con);
+    con->setParent(this);
+    emit shouldAddConnection(con);
 }
 
 void FiveGameTask::gameShouldTerminate(void)

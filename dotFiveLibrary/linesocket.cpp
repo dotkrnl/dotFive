@@ -6,22 +6,25 @@ LineSocket::LineSocket(QTcpSocket *socket,
                        int heartbeat, int timeout,
                        QObject *parent)
     : QObject(parent),
+      m_disconnected(false),
       m_socket(socket),
       m_heartbeat_timer(new QTimer(this)),
       m_timeout_timer(new QTimer(this))
 {
+    m_socket->setParent(this);
     m_id = m_socket->socketDescriptor();
+
     qInfo()  << m_id << " connected";
     qDebug() << m_id << " line socket created";
 
-    if (heartbeat) {
+    if (heartbeat != 0) {
         m_heartbeat_timer->setInterval(heartbeat);
         m_heartbeat_timer->start();
         connect(m_heartbeat_timer, SIGNAL(timeout()),
                 this, SLOT(heartbeatTimeout()));
     }
 
-    if (timeout) {
+    if (timeout != 0) {
         m_timeout_timer->setInterval(timeout);
         m_timeout_timer->start();
         connect(m_timeout_timer, SIGNAL(timeout()),
@@ -30,11 +33,13 @@ LineSocket::LineSocket(QTcpSocket *socket,
 
     connect(m_socket, SIGNAL(readyRead()),
             this, SLOT(readyRead()));
+    if (m_socket->isReadable()) readyRead();
 
     connect(m_socket, SIGNAL(disconnected()),
             this, SLOT(disconnectedEvent()));
-    connect(m_socket, SIGNAL(disconnected()),
-            this, SIGNAL(disconnected()));
+    if (m_socket->state() != QAbstractSocket::ConnectedState)
+        disconnectedEvent();
+
 }
 
 LineSocket::~LineSocket(void)
@@ -105,5 +110,7 @@ void LineSocket::disconnectedEvent()
     qInfo() << m_id << " disconnected.";
 
     m_timeout_timer->stop();
-    m_socket->deleteLater();
+
+    m_disconnected = true;
+    emit disconnected();
 }

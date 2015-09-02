@@ -11,13 +11,15 @@ SOURCES += main.cpp \
     fiveserver.cpp \
     fiveserveroptions.cpp \
     fivegame.cpp \
-    fivegametask.cpp
+    fivegametask.cpp \
+    fivegamemanager.cpp
 
 HEADERS += \
     fiveserver.h \
     fiveserveroptions.h \
     fivegame.h \
-    fivegametask.h
+    fivegametask.h \
+    fivegamemanager.h
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../dotFiveLibrary/release/ -ldotFiveLibrary

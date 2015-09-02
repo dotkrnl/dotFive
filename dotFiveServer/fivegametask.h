@@ -13,20 +13,21 @@ class FiveGameTask : public QObject,
     Q_OBJECT
 
 public:
-    FiveGameTask(void);
+    FiveGameTask(FiveConnection *creator);
     ~FiveGameTask(void);
 
     void run(void);
     void addConnection(FiveConnection *con);
+
     FiveGame *m_game;
+    FiveConnection *m_creator;
     QEventLoop *m_event;
 
 signals:
     void gameTerminated(void);
 
-
 /* internal signals: */
-    void shoudAddConnection(FiveConnection *con);
+    void shouldAddConnection(FiveConnection *con);
 
 private slots:
     void gameShouldTerminate(void);

@@ -38,6 +38,7 @@ protected slots:
 
 public:
     qintptr m_id;
+    bool m_disconnected;
 
 protected:
     QTcpSocket *m_socket;

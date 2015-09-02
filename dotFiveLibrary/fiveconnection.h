@@ -11,9 +11,11 @@ class FiveConnection : public QObject
     Q_OBJECT
 
 public:
-    explicit FiveConnection(LineSocket *con,
+    explicit FiveConnection(QTcpSocket *socket,
+                            int heartbeat = 0, int timeout = 0,
                             QObject *parent = 0);
     ~FiveConnection(void);
+    bool m_disconnected;
 
 signals:
 /* signals from remote */
@@ -38,7 +40,7 @@ signals:
 
 /* signals from local */
     void sendCommand(QString command, QStringList argv);
-    void disconnect(void);
+    void shouldDisconnect(void);
 
 public slots:
 /* slots to emit to remote */
@@ -63,6 +65,7 @@ public slots:
 
 /* slots to emit to local */
     void decodeCommand(QString command, QStringList argv);
+    void disconnectEvent(void);
 
 protected:
     LineSocket *m_con;

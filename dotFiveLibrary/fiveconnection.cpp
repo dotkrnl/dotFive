@@ -2,23 +2,26 @@
 
 #include <QDebug>
 
-FiveConnection::FiveConnection(LineSocket *con,
+FiveConnection::FiveConnection(QTcpSocket *socket,
+                               int heartbeat, int timeout,
                                QObject *parent)
-    : QObject(parent), m_con(con)
+    : QObject(parent),
+      m_disconnected(false),
+      m_con(new LineSocket(socket, heartbeat, timeout, this))
 {
     qDebug() << m_con->m_id << "  five connection created";
-
-    m_con->setParent(this);
 
     connect(this,  SIGNAL(sendCommand(QString,QStringList)),
             m_con, SLOT(sendCommand(QString,QStringList)));
     connect(m_con, SIGNAL(receivedCommand(QString,QStringList)),
             this,  SLOT(decodeCommand(QString,QStringList)));
 
-    connect(this,  SIGNAL(disconnect()),
+    connect(this,  SIGNAL(shouldDisconnect()),
             m_con, SLOT(disconnect()));
     connect(m_con, SIGNAL(disconnected()),
-            this,  SIGNAL(disconnected()));
+            this,  SLOT(disconnectEvent()));
+    if (m_con->m_disconnected)
+        disconnectEvent();
 }
 
 FiveConnection::~FiveConnection(void)
@@ -178,4 +181,10 @@ void FiveConnection::toError(QString error)
 {
     emit sendCommand("ERROR", QStringList()
                 << error);
+}
+
+void FiveConnection::disconnectEvent(void)
+{
+    m_disconnected = true;
+    emit disconnected();
 }

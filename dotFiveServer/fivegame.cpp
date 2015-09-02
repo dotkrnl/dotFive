@@ -2,7 +2,7 @@
 
 FiveGame::FiveGame(QObject *parent)
     : QObject(parent),
-      m_board(new FiveBoard()),
+      m_board(new FiveBoard(this)),
       m_started(false),
       m_terminated(false),
       m_now(PLAYER_BLACK)
@@ -197,8 +197,12 @@ void FiveGame::toDisconnect(void)
 {
     GET_CLIENT_OR_DIE;
 
+    toDisconnect(client);
+}
+
+void FiveGame::toDisconnect(FiveConnection *client)
+{
     m_con.removeAll(client);
-    client->deleteLater();
 
     if (isPlayer(client)) {
         m_player[playerType(client)] = NULL;
@@ -214,6 +218,8 @@ void FiveGame::toDisconnect(void)
         m_terminated = true;
         emit gameShouldTerminate();
     }
+
+    client->deleteLater();
 }
 
 void FiveGame::toCheck(QString checksum)
@@ -222,6 +228,7 @@ void FiveGame::toCheck(QString checksum)
     client->toError("not implemented");
 }
 
+// transfer deletion to FiveGame, delete in toDisconnect
 void FiveGame::addConnection(FiveConnection *con)
 {
     if (m_terminated) return;
@@ -243,8 +250,6 @@ void FiveGame::addConnection(FiveConnection *con)
             this, SLOT(toRequestGiveUp()));
     connect(con,  SIGNAL(repliedGiveUp(bool)),
             this, SLOT(toReplyGiveUp(bool)));
-    connect(con,  SIGNAL(disconnected()),
-            this, SLOT(toDisconnect()));
     connect(con,  SIGNAL(needCheck(QString)),
             this, SLOT(toCheck(QString)));
 
@@ -254,10 +259,16 @@ void FiveGame::addConnection(FiveConnection *con)
         gameSetPlayer(PLAYER_BLACK, con);
     else if (!m_player[PLAYER_WHITE])
         gameSetPlayer(PLAYER_WHITE, con);
+
+    connect(con,  SIGNAL(disconnected()),
+            this, SLOT(toDisconnect()));
+    if (con->m_disconnected)
+        toDisconnect(con);
 }
 
 FiveConnection *FiveGame::getClient(void)
 {
+    if (!sender()) qCritical() << "slot without sender";
     return dynamic_cast<FiveConnection *>(sender());
 }
 

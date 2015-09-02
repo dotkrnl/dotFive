@@ -13,7 +13,7 @@
 #define GET_CLIENT_OR_DIE\
     FiveConnection *client = getClient();\
     if (!client) {\
-        qWarning() << "getClient failed";\
+        qCritical() << "getClient failed";\
         return;\
     }
 
@@ -47,6 +47,8 @@ public:
     explicit FiveGame(QObject *parent = 0);
     ~FiveGame(void);
 
+    bool m_terminated;
+
 signals:
     void gameShouldTerminate(void);
 
@@ -69,6 +71,7 @@ protected slots:
     void toRequestGiveUp(void);
     void toReplyGiveUp(bool accepted);
     void toDisconnect(void);
+    void toDisconnect(FiveConnection *con);
     void toCheck(QString checksum);
 
     void boardChanged(QPoint loc, bool exist, bool is_white);
@@ -76,7 +79,7 @@ protected slots:
 
 protected:
     FiveBoard *m_board;
-    bool m_started, m_terminated;
+    bool m_started;
     player_t m_now;
 
     QList<FiveConnection *> m_con;
