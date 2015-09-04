@@ -15,29 +15,31 @@ class FiveBoard : public QObject
 
 public:
     explicit FiveBoard(QObject *parent = 0);
+    FiveBoard(const FiveBoard &ot, QObject *parent = 0);
+    const FiveBoard &operator= (const FiveBoard &ot);
 
-    bool isExistAt(QPoint loc) { return !isStatus(loc, false, false); }
-    bool isBlackAt(QPoint loc) { return isStatus(loc, true, false); }
-    bool isWhiteAt(QPoint loc) { return isStatus(loc, true, true); }
+    bool isExistAt(QPoint loc) const { return !isStatus(loc, false, false); }
+    bool isBlackAt(QPoint loc) const { return isStatus(loc, true, false); }
+    bool isWhiteAt(QPoint loc) const { return isStatus(loc, true, true); }
 
-    bool isStatus(QPoint loc, bool exist, bool is_white);
-    bool isInRange(QPoint loc);
+    bool isStatus(QPoint loc, bool exist, bool is_white) const;
+    bool isInRange(QPoint loc) const;
 
 signals:
     void cleared(void);
     void changed(QPoint loc, bool exist, bool is_white);
-    void won(bool is_white);
+    void won(bool is_white) const;
 
 public slots:
     void toChange(QPoint loc, bool exist, bool is_white);
     void toClear(void);
 
 private slots:
-    void checkWon(QPoint loc);
+    void checkWon(QPoint loc) const;
 
 protected:
     QVector< QVector< QPair<bool, bool> > > m_board;
-    int sameCount(QPoint loc, QPoint step);
+    int sameCount(QPoint loc, QPoint step) const;
 
 };
 

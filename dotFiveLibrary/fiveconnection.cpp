@@ -1,6 +1,6 @@
 #include "fiveconnection.h"
 
-#include <QDebug>
+#include <QtDebug>
 
 FiveConnection::FiveConnection(QTcpSocket *socket,
                                int heartbeat, int timeout,
@@ -33,7 +33,7 @@ void FiveConnection::decodeCommand(QString command,
                                    QStringList argv)
 {
     #define ERROR if (true) {\
-        qInfo() << m_con->m_id << "  bad command";\
+        qWarning() << m_con->m_id << "  bad command";\
         return;\
     }
     #define SHOULE_SIZE(N) if (argv.size() != (N)) ERROR
@@ -64,13 +64,12 @@ void FiveConnection::decodeCommand(QString command,
                       bool(argv[3].toInt()));
 
     } else if (command == "UNDORQ") {
-        SHOULE_SIZE(1);
-        emit requestedUndo(argv[0].toInt());
+        SHOULE_SIZE(0);
+        emit requestedUndo();
 
     } else if (command == "UNDORP") {
-        SHOULE_SIZE(2);
-        emit repliedUndo(argv[0].toInt(),
-                         bool(argv[1].toInt()));
+        SHOULE_SIZE(1);
+        emit repliedUndo(bool(argv[0].toInt()));
 
     } else if (command == "GIVEUPRQ") {
         SHOULE_SIZE(0);
@@ -119,16 +118,14 @@ void FiveConnection::toSync(QPoint loc, bool exist, bool is_white)
                 << QString::number(is_white));
 }
 
-void FiveConnection::toRequestUndo(int ref_id)
+void FiveConnection::toRequestUndo(void)
 {
-    emit sendCommand("UNDORQ", QStringList()
-                << QString::number(ref_id));
+    emit sendCommand("UNDORQ", QStringList());
 }
 
-void FiveConnection::toReplyUndo(int ref_id, bool accepted)
+void FiveConnection::toReplyUndo(bool accepted)
 {
     emit sendCommand("UNDORP", QStringList()
-                << QString::number(ref_id)
                 << QString::number(accepted));
 }
 

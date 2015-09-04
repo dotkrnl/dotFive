@@ -2,39 +2,21 @@
 #define FIVEGAME_H
 
 #include <cstdlib>
+
 #include <QObject>
 #include <QList>
-
-#include <QDebug>
+#include <QTimer>
 
 #include "fiveconnection.h"
 #include "fiveboard.h"
+#include "fiveconstants.h"
 
-#define GET_CLIENT_OR_DIE\
-    FiveConnection *client = getClient();\
-    if (!client) {\
-        qCritical() << "getClient failed";\
-        return;\
-    }
-
-#define REQUIRE_PLAYER\
-    if (!isPlayer(client)) {\
-        client->toError("not a player");\
-        return;\
-    }
-
-#define BOARDCAST(COMMAND) \
-    for (QList<FiveConnection *>::iterator\
-            i = m_con.begin();\
-            i != m_con.end(); i++) \
-        (*i)->COMMAND
-
-#define PLAYER_BLACK    0
-#define PLAYER_WHITE    1
-#define PLAYER_SIZE     2
+#define NOT_PLAYER      (-1)
+#define PLAYER_BLACK    (0)
+#define PLAYER_WHITE    (1)
+#define PLAYER_SIZE     (2)
 
 #define PLAYER_FIRST    PLAYER_BLACK
-
 
 typedef int player_t;
 
@@ -57,17 +39,20 @@ public slots:
 
     void gameStart(void);
     void gameFinish(player_t winner);
-    void gameSetPlayer(player_t type, FiveConnection *client);
+    void gameChangePlayer(player_t type, FiveConnection *client);
     void gameChangeTurn(player_t type);
+    void gameUndoAction(void);
+    void gameSaveForUndo(void);
     void gameSyncAllTo(FiveConnection *client);
+    void gameTerminate(void);
 
 protected slots:
     void toStart(void);
     void toSetColor(bool is_white);
     void toChangeTurn(bool is_white);
     void toSync(QPoint loc, bool exist, bool is_white);
-    void toRequestUndo(int ref_id);
-    void toReplyUndo(int ref_id, bool accepted);
+    void toRequestUndo(void);
+    void toReplyUndo(bool accepted);
     void toRequestGiveUp(void);
     void toReplyGiveUp(bool accepted);
     void toDisconnect(void);
@@ -77,20 +62,32 @@ protected slots:
     void boardChanged(QPoint loc, bool exist, bool is_white);
     void boardWon(bool is_white);
 
+    void exchangeTimeout(void);
+
 protected:
     FiveBoard *m_board;
+
     bool m_started;
     player_t m_now;
 
-    QList<FiveConnection *> m_con;
+    int  m_who_start;
+    int  m_who_undo;
+    int  m_who_giveup;
 
+    QTimer *m_exchange_timer;
+
+    QList<FiveConnection *> m_con;
     // see PLAYER_BLACK and PLAYER_WHITE
     FiveConnection *m_player[PLAYER_SIZE];
-    bool m_confirmed_start[PLAYER_SIZE];
+
+    QList<FiveBoard> m_history;
 
     FiveConnection *getClient(void);
     bool isPlayer(FiveConnection *client);
-    bool playerType(FiveConnection *client);
+    player_t playerType(bool is_white);
+    player_t playerType(FiveConnection *client);
+    player_t oppositeType(FiveConnection *client);
+    player_t oppositeType(player_t type);
 
 };
 

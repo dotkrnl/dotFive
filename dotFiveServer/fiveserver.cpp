@@ -1,12 +1,12 @@
 #include "fiveserver.h"
 
-#include <QDebug>
+#include <QtDebug>
 
 FiveServer::FiveServer(const FiveServerOptions *options,
                        QObject *parent)
     : QTcpServer(parent),
       m_options(options),
-      m_manager(new FiveGameManager(this))
+      m_manager(new FiveGameManager())
 {
     connect(this, SIGNAL(newConnection()),
             this, SLOT(acceptConnection()));
@@ -57,6 +57,5 @@ void FiveServer::acceptConnection(void)
 
     m_manager->addConnection(new FiveConnection(
             nextPendingConnection(),
-            heartbeat, timeout, m_manager));
-    // transfer deletion to m_manager
+            heartbeat, timeout, this));
 }

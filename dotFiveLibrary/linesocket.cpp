@@ -1,6 +1,6 @@
 #include "linesocket.h"
 
-#include <QDebug>
+#include <QtDebug>
 
 LineSocket::LineSocket(QTcpSocket *socket,
                        int heartbeat, int timeout,
@@ -14,7 +14,7 @@ LineSocket::LineSocket(QTcpSocket *socket,
     m_socket->setParent(this);
     m_id = m_socket->socketDescriptor();
 
-    qInfo()  << m_id << " connected";
+    qWarning()  << m_id << " connected";
     qDebug() << m_id << " line socket created";
 
     if (heartbeat != 0) {
@@ -84,9 +84,9 @@ void LineSocket::processLine(QString line)
     got.pop_front();
 
     if (command == "") {
-        qInfo() << m_id << " from which got nothing";
+        qWarning() << m_id << " from which got nothing";
     } else if (command == "HEARTBEAT") {
-        qInfo() << m_id << " from which got heartbeat";
+        qWarning() << m_id << " from which got heartbeat";
     } else {
         qDebug() << m_id << " from which got:" << line;
         emit receivedCommand(command, got);
@@ -100,14 +100,14 @@ void LineSocket::heartbeatTimeout()
 
 void LineSocket::connectionTimeout()
 {
-    qInfo() << m_id << " timeout";
+    qWarning() << m_id << " timeout";
 
     disconnect();
 }
 
 void LineSocket::disconnectedEvent()
 {
-    qInfo() << m_id << " disconnected.";
+    qWarning() << m_id << " disconnected.";
 
     m_timeout_timer->stop();
 

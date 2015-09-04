@@ -1,6 +1,6 @@
 #include "fiveboard.h"
 
-#include <QDebug>
+#include <QtDebug>
 
 FiveBoard::FiveBoard(QObject *parent)
     : QObject(parent)
@@ -8,7 +8,35 @@ FiveBoard::FiveBoard(QObject *parent)
     toClear();
 }
 
-bool FiveBoard::isStatus(QPoint loc, bool exist, bool is_white)
+FiveBoard::FiveBoard(const FiveBoard &ot, QObject *parent)
+    : QObject(parent)
+{
+    m_board = ot.m_board;
+}
+
+const FiveBoard &FiveBoard::operator= (const FiveBoard &ot)
+{
+    for (int i = 0; i < five::BOARD_SIZE; i++)
+        for (int j = 0; j < five::BOARD_SIZE; j++) {
+            QPoint loc(i, j);
+            if (ot.isStatus(loc,
+                            isExistAt(loc),
+                            isWhiteAt(loc))) continue;
+
+            bool exist = ot.isExistAt(loc);
+            bool is_white = ot.isWhiteAt(loc);
+            m_board[i][j] = QPair<bool, bool>(exist, is_white);
+            emit changed(loc, exist, is_white);
+        }
+
+    for (int i = 0; i < five::BOARD_SIZE; i++)
+        for (int j = 0; j < five::BOARD_SIZE; j++)
+            checkWon(QPoint(i, j));
+
+    return *this;
+}
+
+bool FiveBoard::isStatus(QPoint loc, bool exist, bool is_white) const
 {
     int x = loc.x(), y = loc.y();
     if (!exist) return !m_board[x][y].first;
@@ -16,7 +44,7 @@ bool FiveBoard::isStatus(QPoint loc, bool exist, bool is_white)
             m_board[x][y].second == is_white;
 }
 
-bool FiveBoard::isInRange(QPoint loc)
+bool FiveBoard::isInRange(QPoint loc) const
 {
     int x = loc.x(), y = loc.y();
     return (x >= 0 && y >= 0 &&
@@ -27,7 +55,7 @@ bool FiveBoard::isInRange(QPoint loc)
 void FiveBoard::toChange(QPoint loc, bool exist, bool is_white)
 {
     if (!isInRange(loc)) {
-        qInfo() << "change outside board:" << loc;
+        qWarning() << "change outside board:" << loc;
         return;
     }
 
@@ -49,7 +77,7 @@ void FiveBoard::toClear(void)
     emit cleared();
 }
 
-void FiveBoard::checkWon(QPoint loc)
+void FiveBoard::checkWon(QPoint loc) const
 {
     if (!isExistAt(loc)) return;
 
@@ -61,7 +89,7 @@ void FiveBoard::checkWon(QPoint loc)
     if (is_won) emit won(isWhiteAt(loc));
 }
 
-int FiveBoard::sameCount(QPoint loc, QPoint step)
+int FiveBoard::sameCount(QPoint loc, QPoint step) const
 {
     int count = -1;
     bool e = isExistAt(loc), w = isWhiteAt(loc);

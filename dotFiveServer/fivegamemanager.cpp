@@ -2,8 +2,25 @@
 
 FiveGameManager::FiveGameManager(QObject *parent)
     : QObject(parent),
-      m_mapper(new QSignalMapper(this))
+      m_mapper(new QSignalMapper)
 {
+    int t_count = QThread::idealThreadCount();
+    if (t_count < 2) t_count = 2;
+    // should have at least 2
+
+    m_thread_pool.resize(t_count);
+    for (int i = 0; i < m_thread_pool.size(); i++) {
+        m_thread_pool[i] = new QThread();
+        m_thread_pool[i]->start();
+    }
+
+    this->moveToThread(m_thread_pool[0]);
+    m_mapper->moveToThread(m_thread_pool[0]);
+    m_mapper->setParent(this);
+
+    connect(m_mapper, SIGNAL(mapped(int)),
+            this,     SLOT(gameDeleted(int)));
+
     QVector<int> tokens(TOKEN_COUNT);
     for (int i = MIN_TOKEN; i <= MAX_TOKEN; i++)
         tokens[i] = i;
@@ -12,25 +29,22 @@ FiveGameManager::FiveGameManager(QObject *parent)
 
     for (int i = 0; i < TOKEN_COUNT; i++)
         m_token_pool.enqueue(tokens[i]);
-
-    m_thread_pool.resize(QThread::idealThreadCount());
-    for (int i = 0; i < m_thread_pool.size(); i++) {
-        m_thread_pool[i] = new QThread();
-        m_thread_pool[i]->start();
-    }
-
-    connect(m_mapper, SIGNAL(mapped(int)),
-            this,     SLOT(gameDeleted(int)));
 }
 
-// transfer deletion to m_manager
 void FiveGameManager::addConnection(FiveConnection *con)
 {
-    con->setParent(this);
     connect(con,  SIGNAL(needCreateToken()),
             this, SLOT(toCreateToken()));
     connect(con,  SIGNAL(token(QString)),
             this, SLOT(toToken(QString)));
+}
+
+void FiveGameManager::managedConnection(FiveConnection *con)
+{
+    disconnect(con,  SIGNAL(needCreateToken()),
+               this, SLOT(toCreateToken()));
+    disconnect(con,  SIGNAL(token(QString)),
+               this, SLOT(toToken(QString)));
 }
 
 void FiveGameManager::toCreateToken(void)
@@ -39,7 +53,7 @@ void FiveGameManager::toCreateToken(void)
             dynamic_cast<FiveConnection *>(sender());
 
     if (!client) {
-        qWarning() << "getClient failed";
+        qWarning() << "getClient failed in toCreateToken";
         return;
     }
 
@@ -49,19 +63,20 @@ void FiveGameManager::toCreateToken(void)
         return;
     }
 
+    managedConnection(client);
+
     int t = m_token_pool.dequeue();
     qDebug() << "token" << t << "created";
 
     // transfer client deletion to new_game
     FiveGameTask *new_game = new FiveGameTask(client);
     // FiveGameTask delete in gameDeleted
-
     m_games[t] = new_game;
-    client->toToken(QString::number(t));
-
     m_mapper->setMapping(new_game, t);
     connect(new_game, SIGNAL(gameTerminated()),
             m_mapper, SLOT(map()));
+
+    client->toToken(QString::number(t));
 
     new_game->start(&m_thread_pool);
 }
@@ -72,7 +87,7 @@ void FiveGameManager::toToken(QString token)
             dynamic_cast<FiveConnection *>(sender());
 
     if (!client) {
-        qWarning() << "getClient failed";
+        qWarning() << "getClient failed in toToken";
         return;
     }
 
@@ -87,18 +102,28 @@ void FiveGameManager::toToken(QString token)
         return;
     }
 
+    managedConnection(client);
+
     qDebug() << "adding to token" << t;
     client->toToken(QString::number(t));
+
     // transfer deletion to *game
     (*game)->addConnection(client);
+    // FiveGameTask delete in gameDeleted
 }
 
 void FiveGameManager::gameDeleted(int t)
 {
-    m_games[t]->deleteLater();
-    m_games.remove(t);
+    QMap<int, FiveGameTask *>::iterator game
+            = m_games.find(t);
 
-    m_token_pool.enqueue(t);
+    if (game != m_games.end() && *game != NULL) {
+        m_games[t]->deleteLater();
+        m_games.remove(t);
+        m_token_pool.enqueue(t);
+    } else {
+        qCritical() << "token" << t << "already deleted";
+    }
 
     qDebug() << "token" << t << "deleted";
     qDebug() << "token remaining:" << m_token_pool.size();

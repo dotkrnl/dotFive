@@ -24,8 +24,8 @@ signals:
     void changeTurn(bool is_white);
     void started(void);
     void needSync(QPoint loc, bool exist, bool is_white);
-    void requestedUndo(int ref_id);
-    void repliedUndo(int ref_id, bool accepted);
+    void requestedUndo(void);
+    void repliedUndo(bool accepted);
     void requestedGiveUp(void);
     void repliedGiveUp(bool accepted);
     void disconnected(void);
@@ -49,8 +49,8 @@ public slots:
     void toChangeTurn(bool is_white);
     void toStart(void);
     void toSync(QPoint loc, bool exist, bool is_white);
-    void toRequestUndo(int ref_id);
-    void toReplyUndo(int ref_id, bool accepted);
+    void toRequestUndo(void);
+    void toReplyUndo(bool accepted);
     void toRequestGiveUp(void);
     void toReplyGiveUp(bool accepted);
     void toDisconnect(void);

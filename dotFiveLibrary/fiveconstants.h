@@ -17,6 +17,9 @@ const extern QString PORT_DEFAULT;
 const extern QString TIMEOUT_DEFAULT;
 const extern QString HEARTBEAT_DEFAULT;
 
+const extern int GIVEUP_TIMEOUT_CLIENT;
+const extern int GIVEUP_TIMEOUT_SERVER;
+
 }
 
 #endif // FIVEGLOBAL_H

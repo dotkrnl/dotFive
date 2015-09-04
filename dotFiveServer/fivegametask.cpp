@@ -1,6 +1,6 @@
 #include "fivegametask.h"
 
-#include <QDebug>
+#include <QtDebug>
 
 // transfer deletion to FiveGameTask
 FiveGameTask::FiveGameTask(FiveConnection *creator)
@@ -24,10 +24,11 @@ void FiveGameTask::start(QVector<QThread *> *thread_pool)
 {
     qDebug() << "five game task started";
 
-    int chose = randomChoose(thread_pool->size());
+    int chose = randomChoose(thread_pool->size() - 1);
 
     m_game = new FiveGame();
-    m_game->moveToThread((*thread_pool)[chose]);
+    m_game->moveToThread((*thread_pool)[chose + 1]);
+    // No.0 is for FiveGameManager
 
     // transfer deletion to m_game
     connect(this,   SIGNAL(shouldAddConnection(FiveConnection*)),
@@ -39,10 +40,8 @@ void FiveGameTask::start(QVector<QThread *> *thread_pool)
     addConnection(m_creator);
 }
 
-// transfer deletion to FiveGameTask
 void FiveGameTask::addConnection(FiveConnection *con)
 {
-    con->setParent(this);
     emit shouldAddConnection(con);
 }
 

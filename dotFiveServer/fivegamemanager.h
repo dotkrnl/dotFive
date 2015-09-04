@@ -33,6 +33,8 @@ protected slots:
     void toCreateToken(void);
     void toToken(QString token);
 
+    void managedConnection(FiveConnection *con);
+
     void gameDeleted(int t);
 
 protected:

@@ -1,5 +1,6 @@
 #include <QCoreApplication>
-#include <QDebug>
+
+#include <QtDebug>
 
 #include "fiveserveroptions.h"
 #include "fiveserver.h"

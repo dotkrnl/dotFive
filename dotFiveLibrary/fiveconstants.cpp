@@ -14,7 +14,11 @@ const QPoint SPECIAL_POINTS[SPECIAL_POINT_COUNT] = {
 // server defaults
 const QString ADDRESS_ANY =             "%any%";
 const QString PORT_DEFAULT =            "5555";
+
 const QString TIMEOUT_DEFAULT =         "5000";
 const QString HEARTBEAT_DEFAULT =       "2000";
+
+const int GIVEUP_TIMEOUT_CLIENT =       20000;
+const int GIVEUP_TIMEOUT_SERVER =       30000;
 
 }
