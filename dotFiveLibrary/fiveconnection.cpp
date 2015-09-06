@@ -36,66 +36,77 @@ void FiveConnection::decodeCommand(QString command,
         qWarning() << m_con->m_id << "  bad command";\
         return;\
     }
-    #define SHOULE_SIZE(N) if (argv.size() != (N)) ERROR
+    #define SHOULD_SIZE(N) if (argv.size() != (N)) ERROR
 
     qDebug() << m_con->m_id << "  command:" << command;
 
     if (command == "TOKEN") {
-        SHOULE_SIZE(1);
+        SHOULD_SIZE(1);
         emit token(argv[0]);
 
     } else if (command == "START") {
-        SHOULE_SIZE(0);
+        SHOULD_SIZE(0);
         emit started();
 
     } else if (command == "COLOR") {
-        SHOULE_SIZE(1);
+        SHOULD_SIZE(1);
         emit setColor(bool(argv[0].toInt()));
 
     } else if (command == "CHANGE") {
-        SHOULE_SIZE(1);
+        SHOULD_SIZE(1);
         emit changeTurn(bool(argv[0].toInt()));
 
     } else if (command == "SYNC") {
-        SHOULE_SIZE(4);
+        SHOULD_SIZE(4);
         emit needSync(QPoint(argv[0].toInt(),
                              argv[1].toInt()),
                       bool(argv[2].toInt()),
                       bool(argv[3].toInt()));
 
+    } else if (command == "TIME") {
+        SHOULD_SIZE(2);
+        emit timeChanged(argv[0].toInt(),
+                         bool(argv[1].toInt()));
+
     } else if (command == "UNDORQ") {
-        SHOULE_SIZE(0);
+        SHOULD_SIZE(0);
         emit requestedUndo();
 
     } else if (command == "UNDORP") {
-        SHOULE_SIZE(1);
+        SHOULD_SIZE(1);
         emit repliedUndo(bool(argv[0].toInt()));
 
     } else if (command == "GIVEUPRQ") {
-        SHOULE_SIZE(0);
+        SHOULD_SIZE(0);
         emit requestedGiveUp();
 
     } else if (command == "GIVEUPRP") {
-        SHOULE_SIZE(1);
+        SHOULD_SIZE(1);
         emit repliedGiveUp(bool(argv[0].toInt()));
 
     } else if (command == "FINISH") {
-        SHOULE_SIZE(1);
+        SHOULD_SIZE(1);
         emit finished(bool(argv[0].toInt()));
 
     } else if (command == "CHECK") {
-        SHOULE_SIZE(1);
+        SHOULD_SIZE(1);
         emit needCheck(argv[0]);
 
     } else if (command == "CREATE") {
-        SHOULE_SIZE(0);
+        SHOULD_SIZE(0);
         emit needCreateToken();
 
-    } else if (command == "ERROR") {
-        SHOULE_SIZE(1);
-        emit error(argv[0]);
+    } else if (command == "MAGIC") {
+        SHOULD_SIZE(0);
+        emit needMagic();
 
-    } else ERROR;
+    } else if (command == "ERROR") {
+        emit error(argv.join(" "));
+
+    } else {
+        toCheck("badchecksum");
+        ERROR;
+    }
 }
 
 void FiveConnection::toToken(QString token)
@@ -157,6 +168,13 @@ void FiveConnection::toDisconnect(void)
     emit disconnect();
 }
 
+void FiveConnection::toChangeTime(int time, bool is_white)
+{
+    emit sendCommand("TIME", QStringList()
+                << QString::number(time)
+                << QString::number(is_white));
+}
+
 void FiveConnection::toFinish(bool winner_is_white)
 {
     emit sendCommand("FINISH", QStringList()
@@ -172,6 +190,11 @@ void FiveConnection::toCheck(QString checksum)
 void FiveConnection::toCreateToken(void)
 {
     emit sendCommand("CREATE", QStringList());
+}
+
+void FiveConnection::toMagic(void)
+{
+    emit sendCommand("MAGIC", QStringList());
 }
 
 void FiveConnection::toError(QString error)

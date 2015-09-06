@@ -4,4 +4,3 @@ SUBDIRS += \
     dotFiveLibrary\
     dotFiveClient\
     dotFiveServer
-

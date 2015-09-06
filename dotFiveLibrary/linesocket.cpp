@@ -71,9 +71,8 @@ void LineSocket::readyRead()
 {
     m_timeout_timer->start();
 
-    if (!m_socket->canReadLine()) return;
-
-    processLine(QString::fromUtf8(m_socket->readLine()));
+    while (m_socket->canReadLine())
+        processLine(QString::fromUtf8(m_socket->readLine()));
 }
 
 void LineSocket::processLine(QString line)

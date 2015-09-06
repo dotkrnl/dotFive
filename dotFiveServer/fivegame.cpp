@@ -49,14 +49,29 @@ void FiveGame::gameStart(void)
     m_who_giveup = NOT_PLAYER;
     m_history.clear();
 
+    m_time_used[PLAYER_BLACK]
+            = m_time_used[PLAYER_WHITE]
+            = 0;
+
+    BOARDCAST(toChangeTime(0, PLAYER_BLACK));
+    BOARDCAST(toChangeTime(0, PLAYER_WHITE));
+
     m_started = true;
     BOARDCAST(toStart());
+    m_exchange_timer->start();
     gameChangeTurn(PLAYER_FIRST);
 }
 
 void FiveGame::gameFinish(player_t winner)
 {
     m_started = false;
+
+    if (m_now != NOT_PLAYER) {
+        m_time_used[m_now] +=
+                five::GIVEUP_TIMEOUT_SERVER -
+                m_exchange_timer->remainingTime();
+        BOARDCAST(toChangeTime(m_time_used[m_now], m_now));
+    }
 
     m_board->toClear();
     m_exchange_timer->stop();
@@ -92,6 +107,13 @@ void FiveGame::gameChangeTurn(player_t type)
 
     if (m_now != type)
         gameSaveForUndo();
+
+    if (m_now != NOT_PLAYER) {
+        m_time_used[m_now] +=
+                five::GIVEUP_TIMEOUT_SERVER -
+                m_exchange_timer->remainingTime();
+        BOARDCAST(toChangeTime(m_time_used[m_now], m_now));
+    }
 
     m_now = type;
 
@@ -133,11 +155,10 @@ void FiveGame::gameSaveForUndo(void)
 
 void FiveGame::gameSyncAllTo(FiveConnection *client)
 {
-    if (m_started)
-        client->toChangeTurn(m_now == PLAYER_WHITE);
-
-    if (m_who_start != NOT_PLAYER)
+    if (m_started) {
         client->toStart();
+        client->toChangeTurn(m_now == PLAYER_WHITE);
+    }
 
     if (isPlayer(client)) {
         if (m_who_undo == oppositeType(client))
@@ -233,7 +254,7 @@ void FiveGame::toSetColor(bool is_white)
 
     player_t dest = playerType(is_white);
 
-    if (m_started || m_who_start == playerType(client)) {
+    if (m_started || m_who_start != NOT_PLAYER) {
         client->toError("can't change color after started");
 
     } else if (dest == playerType(client)) {
@@ -312,7 +333,7 @@ void FiveGame::toReplyUndo(bool accepted)
     REQUIRE_TYPE(oppositeType(m_who_undo));
 
     m_player[m_who_undo]->toReplyUndo(accepted);
-    gameUndoAction();
+    if (accepted) gameUndoAction();
 
     m_who_undo = NOT_PLAYER;
 }
@@ -348,9 +369,9 @@ void FiveGame::toDisconnect(void)
 
 void FiveGame::toDisconnect(FiveConnection *client)
 {
-    gameChangePlayer(NOT_PLAYER, client);
     if (m_started && isPlayer(client))
         gameFinish(oppositeType(client));
+    gameChangePlayer(NOT_PLAYER, client);
 
     m_con.removeAll(client);
     client->deleteLater();
@@ -361,7 +382,7 @@ void FiveGame::toDisconnect(FiveConnection *client)
 void FiveGame::toCheck(QString checksum)
 {
     GET_CLIENT_OR_DIE;
-    client->toError("not implemented");
+    gameSyncAllTo(client);
 }
 
 
@@ -390,7 +411,7 @@ void FiveGame::addConnection(FiveConnection *con)
             this, SLOT(toReplyGiveUp(bool)));
     connect(con,  SIGNAL(needCheck(QString)),
             this, SLOT(toCheck(QString)));
-    //gameSyncAllTo(con);
+    gameSyncAllTo(con);
 
     if (!m_player[PLAYER_BLACK])
         gameChangePlayer(PLAYER_BLACK, con);

@@ -1,24 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow" >
-  <property name="geometry" >
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>474</width>
+    <height>527</height>
    </rect>
   </property>
-  <property name="windowTitle" >
-   <string>MainWindow</string>
+  <property name="minimumSize">
+   <size>
+    <width>474</width>
+    <height>524</height>
+   </size>
   </property>
-  <widget class="QMenuBar" name="menuBar" />
-  <widget class="QToolBar" name="mainToolBar" />
-  <widget class="QWidget" name="centralWidget" />
-  <widget class="QStatusBar" name="statusBar" />
+  <property name="windowTitle">
+   <string>dotFive</string>
+  </property>
+  <property name="windowOpacity">
+   <double>0.980000000000000</double>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget#centralWidget
+{
+	background-color: #404244;
+}
+
+QLabel#brand
+{
+	color: white;
+}
+
+QLabel, QLineEdit
+{
+	color: #A1A3A5;
+	font: 20pt &quot;Helvetica&quot;;
+}
+
+QPushButton
+{
+	border: none;
+	color: #A1A3A5;
+	font: 20pt &quot;FontAwesome&quot;;
+}
+
+QPushButton:hover
+{
+	color: #C1C3C5;
+}
+
+QPushButton:pressed
+{
+	color: #404244;
+	background-color: #A1A3A5;
+}
+
+
+*[isWhite=&quot;false&quot;]
+{
+	color: #151719; 
+}
+
+*[isWhite=&quot;true&quot;]
+{
+	color: #D1D3D5; 
+}
+
+*[clickStatus=&quot;sent&quot;]
+{
+	color: #66ffff; 
+}
+
+*[clickStatus=&quot;rejected&quot;]
+{
+	color: #ff9900;
+}
+</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>2</number>
+    </property>
+    <property name="bottomMargin">
+     <number>25</number>
+    </property>
+    <item>
+     <widget class="MainScene" name="mainScene" native="true"/>
+    </item>
+    <item>
+     <widget class="WelcomeScene" name="welcomeScene" native="true"/>
+    </item>
+    <item>
+     <widget class="SettingScene" name="settingScene" native="true"/>
+    </item>
+    <item>
+     <widget class="DisconnectedScene" name="disconnectedScene" native="true"/>
+    </item>
+    <item>
+     <widget class="StartScene" name="startScene" native="true"/>
+    </item>
+    <item>
+     <widget class="RequestScene" name="requestScene" native="true"/>
+    </item>
+   </layout>
+  </widget>
  </widget>
- <layoutDefault spacing="6" margin="11" />
- <pixmapfunction></pixmapfunction>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>MainScene</class>
+   <extends>QWidget</extends>
+   <header>mainscene.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>WelcomeScene</class>
+   <extends>QWidget</extends>
+   <header>welcomescene.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SettingScene</class>
+   <extends>QWidget</extends>
+   <header>settingscene.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>DisconnectedScene</class>
+   <extends>QWidget</extends>
+   <header>disconnectedscene.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>StartScene</class>
+   <extends>QWidget</extends>
+   <header>startscene.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RequestScene</class>
+   <extends>QWidget</extends>
+   <header>requestscene.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

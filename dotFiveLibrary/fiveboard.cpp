@@ -61,11 +61,14 @@ void FiveBoard::toChange(QPoint loc, bool exist, bool is_white)
 
     if (!exist) is_white = false;
 
-    m_board[loc.x()][loc.y()] =
-            QPair<bool, bool>(exist, is_white);
-    emit changed(loc, exist, is_white);
+    if (isExistAt(loc) != exist ||
+            isWhiteAt(loc) != is_white) {
+        m_board[loc.x()][loc.y()] =
+                QPair<bool, bool>(exist, is_white);
+        emit changed(loc, exist, is_white);
 
-    checkWon(loc);
+        checkWon(loc);
+    }
 }
 
 void FiveBoard::toClear(void)
@@ -75,6 +78,40 @@ void FiveBoard::toClear(void)
     for (int i = 0; i < five::BOARD_SIZE; i++)
         m_board[i].resize(five::BOARD_SIZE);
     emit cleared();
+}
+
+void FiveBoard::toSave(QFile *file, bool is_white_now)
+{
+    QTextStream output(file);
+
+    if (!is_white_now) {
+        for (int i = 0; i < five::BOARD_SIZE; i++)
+            for (int j = 0; j < five::BOARD_SIZE; j++) {
+                output << i << " " << j << " " <<
+                          isExistAt(QPoint(i, j)) << " " <<
+                          isWhiteAt(QPoint(i, j)) << "\n";
+            }
+    } else {
+        for (int i = 0; i < five::BOARD_SIZE; i++)
+            for (int j = 0; j < five::BOARD_SIZE; j++) {
+                output << i << " " << j << " " <<
+                          isExistAt(QPoint(i, j)) << " " <<
+                          isBlackAt(QPoint(i, j)) << "\n";
+            }
+    }
+}
+
+void FiveBoard::toLoad(QFile *file)
+{
+    QTextStream input(file);
+
+    while (!input.atEnd()) {
+        int x, y, exist, is_white;
+        input >> x >> y >> exist >> is_white;
+        input.skipWhiteSpace();
+        m_board[x][y] = QPair<bool, bool>(exist, is_white);
+        emit changed(QPoint(x, y), exist, is_white);
+    }
 }
 
 void FiveBoard::checkWon(QPoint loc) const

@@ -5,6 +5,7 @@
 #include <QPoint>
 #include <QPair>
 #include <QVector>
+#include <QFile>
 
 #include "fiveconstants.h"
 
@@ -33,6 +34,8 @@ signals:
 public slots:
     void toChange(QPoint loc, bool exist, bool is_white);
     void toClear(void);
+    void toSave(QFile *file, bool is_white_now = false);
+    void toLoad(QFile *file);
 
 private slots:
     void checkWon(QPoint loc) const;

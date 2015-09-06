@@ -30,8 +30,9 @@ public slots:
     void addConnection(FiveConnection *con);
 
 protected slots:
-    void toCreateToken(void);
+    QString toCreateToken(void);
     void toToken(QString token);
+    void toMagic(void);
 
     void managedConnection(FiveConnection *con);
 
@@ -42,6 +43,8 @@ protected:
     QVector<QThread *> m_thread_pool;
     QQueue<int> m_token_pool;
     QSignalMapper *m_mapper;
+
+    QString m_magic_token;
 
 };
 

@@ -32,11 +32,13 @@ signals:
     void error(QString error);
 
     // to client only
+    void timeChanged(int time, bool is_white);
     void finished(bool winner_is_white);
 
     // to server only
     void needCheck(QString checksum);
     void needCreateToken(void);
+    void needMagic(void);
 
 /* signals from local */
     void sendCommand(QString command, QStringList argv);
@@ -57,11 +59,13 @@ public slots:
     void toError(QString error);
 
     // from server only
+    void toChangeTime(int time, bool is_white);
     void toFinish(bool winner_is_white);
 
     // from client only
     void toCreateToken(void);
     void toCheck(QString checksum);
+    void toMagic(void);
 
 /* slots to emit to local */
     void decodeCommand(QString command, QStringList argv);

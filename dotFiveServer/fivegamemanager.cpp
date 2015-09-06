@@ -37,6 +37,8 @@ void FiveGameManager::addConnection(FiveConnection *con)
             this, SLOT(toCreateToken()));
     connect(con,  SIGNAL(token(QString)),
             this, SLOT(toToken(QString)));
+    connect(con,  SIGNAL(needMagic()),
+            this, SLOT(toMagic()));
 }
 
 void FiveGameManager::managedConnection(FiveConnection *con)
@@ -45,22 +47,32 @@ void FiveGameManager::managedConnection(FiveConnection *con)
                this, SLOT(toCreateToken()));
     disconnect(con,  SIGNAL(token(QString)),
                this, SLOT(toToken(QString)));
+    disconnect(con,  SIGNAL(needMagic()),
+               this, SLOT(toMagic()));
 }
 
-void FiveGameManager::toCreateToken(void)
+QString intToToken(int t)
+{
+    QString token = QString::number(t);
+    while (token.length() < 4)
+        token = "0" + token;
+    return token;
+}
+
+QString FiveGameManager::toCreateToken(void)
 {
     FiveConnection *client =
             dynamic_cast<FiveConnection *>(sender());
 
     if (!client) {
         qWarning() << "getClient failed in toCreateToken";
-        return;
+        return "";
     }
 
     if (m_token_pool.empty()) {
         qWarning() << "no token available";
         client->toError("no token available");
-        return;
+        return "";
     }
 
     managedConnection(client);
@@ -76,9 +88,11 @@ void FiveGameManager::toCreateToken(void)
     connect(new_game, SIGNAL(gameTerminated()),
             m_mapper, SLOT(map()));
 
-    client->toToken(QString::number(t));
+    client->toToken(intToToken(t));
 
     new_game->start(&m_thread_pool);
+
+    return intToToken(t);
 }
 
 void FiveGameManager::toToken(QString token)
@@ -105,11 +119,30 @@ void FiveGameManager::toToken(QString token)
     managedConnection(client);
 
     qDebug() << "adding to token" << t;
-    client->toToken(QString::number(t));
+    client->toToken(intToToken(t));
 
     // transfer deletion to *game
     (*game)->addConnection(client);
     // FiveGameTask delete in gameDeleted
+}
+
+void FiveGameManager::toMagic(void)
+{
+    FiveConnection *client =
+            dynamic_cast<FiveConnection *>(sender());
+
+    if (!client) {
+        qWarning() << "getClient failed in toToken";
+        return;
+    }
+
+    if (m_magic_token != "" &&
+            m_games[m_magic_token.toInt()]) {
+        toToken(m_magic_token);
+        m_magic_token = "";
+    } else {
+        m_magic_token = toCreateToken();
+    }
 }
 
 void FiveGameManager::gameDeleted(int t)

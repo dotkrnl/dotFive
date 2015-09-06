@@ -74,6 +74,8 @@ protected:
     int  m_who_undo;
     int  m_who_giveup;
 
+    int  m_time_used[PLAYER_SIZE];
+
     QTimer *m_exchange_timer;
 
     QList<FiveConnection *> m_con;
